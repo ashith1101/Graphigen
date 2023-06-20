@@ -1,39 +1,40 @@
 import express from 'express';
-import * as dotenv from 'dotenv';
 import { Configuration, OpenAIApi } from 'openai';
 
-
-
-dotenv.config();
-
 const router = express.Router();
-
-const configuratiuon = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-const openai = new OpenAIApi(configuratiuon);
+const openai = new OpenAIApi(configuration);
 
-router.route('/').get((req,res)=>{
-    res.send('Hello from dalleRoutes.js')
-})
+router.get('/', (req, res) => {
+  console.log('GET /api/v1/dalle');
+  res.send('Hello from DALL-E!');
+});
 
-router.route('/').post(async (req,res)=>{
-    try {
-        const {prompt}=req.body;    
-        const aiResponse = await openai.createImage({
-            prompt,
-            n:1,
-            size:'1024x1024',
-            response_format:'b64_json'
-        });
-        const image = aiResponse.data.data[0].b64_json;
-        res.status(200).json({photo:image});
-    } catch (error) {
-        console.log(error);
-        res.status(500).send(error?.response?.data?.error?.message);
-    }
-})
+router.post('/', async (req, res) => {
+  try {
+    console.log('POST /api/v1/dalle');
+    const { prompt } = req.body;
+    console.log('Prompt:', prompt);
+
+    const aiResponse = await openai.createImage({
+      prompt,
+      n: 1,
+      size: '1024x1024',
+      response_format: 'b64_json',
+    });
+    console.log('AI Response:', aiResponse);
+
+    const image = aiResponse.data[0].image;
+    console.log('Image:', image);
+
+    res.status(200).json({ photo: image });
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).send(error?.response?.data?.error?.message);
+  }
+});
 
 export default router;
